@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="骨科随访">
+<meta name="theme-color" content="#0F3460">
+<title>骨科手足显微外科 · 随访系统</title>
+<style>
+:root{
+  --bg:#EEF2F7;--surface:#fff;--card:#F4F7FB;
+  --primary:#0F3460;--pm:#1A5276;--pl:#2471A3;--pll:#D6EAF8;
+  --accent:#1ABC9C;--warn:#E67E22;--danger:#C0392B;
+  --muted:#7F8C8D;--border:#CADCEC;--text:#1A252F;--texts:#4A5568;
+  --r:12px;--sh:0 2px 12px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+.hdr{background:linear-gradient(135deg,#0F3460,#0a2240);color:#fff;padding:env(safe-area-inset-top,0) 14px 8px;min-height:56px;display:flex;align-items:flex-end;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(0,0,0,0.28)}
+.ht{font-size:15px;font-weight:900;letter-spacing:.3px}
+.hs{font-size:10px;opacity:.6;margin-top:1px}
+.hbr{display:flex;gap:5px}
+.hbtn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);color:#fff;padding:5px 9px;border-radius:7px;font-size:11px;cursor:pointer;font-weight:700;font-family:inherit}
+.hbtn:active{opacity:.7}
+
+/* ── Category Sidebar + Content ── */
+.layout{display:flex;min-height:calc(100vh - 56px - env(safe-area-inset-top,0px))}
+
+/* ── Sidebar (desktop) ── */
+.sidebar{width:72px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;flex-shrink:0}
+.cat-btn{width:58px;padding:10px 4px;border-radius:10px;border:none;background:transparent;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .18s;position:relative}
+.cat-btn .ico{font-size:22px;line-height:1}
+.cat-btn .lbl{font-size:9px;color:var(--muted);font-weight:600;text-align:center;line-height:1.2}
+.cat-btn .cnt{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.cat-btn.active{background:var(--pll)}
+.cat-btn.active .lbl{color:var(--primary);font-weight:800}
+.cat-btn:active{opacity:.7}
+.side-div{width:40px;height:1px;background:var(--border);margin:4px 0}
+
+/* ── Main content ── */
+.content{flex:1;padding:14px;overflow-x:hidden;min-width:0}
+
+/* ── Category Header Banner ── */
+.cat-banner{border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
+.cat-banner .cb-ico{font-size:36px;flex-shrink:0}
+.cat-banner .cb-title{font-size:17px;font-weight:900;color:#fff}
+.cat-banner .cb-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px}
+.cat-banner .cb-count{position:absolute;right:16px;top:50%;transform:translateY(-50%);text-align:right}
+.cat-banner .cb-num{font-size:28px;font-weight:900;color:rgba(255,255,255,0.9);line-height:1}
+.cat-banner .cb-nl{font-size:10px;color:rgba(255,255,255,0.65)}
+
+/* ── Search ── */
+.search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+
+/* ── Patient Cards ── */
+.pcard{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);margin-bottom:10px;overflow:hidden}
+.pcard-head{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;cursor:pointer;user-select:none;transition:background .15s}
+.pcard-head:hover{background:var(--card)}
+.pcard-head.expanded{border-bottom:1px solid var(--border)}
+.pname{font-size:15px;font-weight:900}
+.pmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;background:var(--pll);color:var(--pl);margin-right:2px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.pcard-body{padding:12px 14px;background:var(--card)}
+.pcard-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Visit Timeline (inside patient card) ── */
+.visit-tl{margin-top:12px}
+.vt-item{display:flex;gap:0;margin-bottom:0}
+.vt-line-col{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0}
+.vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:4px}
+.vt-bar{flex:1;width:2px;background:var(--border);min-height:8px}
+.vt-content{flex:1;padding:0 0 12px 10px;min-width:0}
+.vt-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;cursor:pointer}
+.vt-date{font-size:12px;font-weight:700;color:var(--pm)}
+.vt-detail{margin-top:8px;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+
+/* ── Photo Grid ── */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px;margin-top:6px}
+.pt{position:relative;border-radius:7px;overflow:hidden;aspect-ratio:1;background:#dde5f0;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.pt:hover{border-color:var(--pl)}
+.pt img{width:100%;height:100%;object-fit:cover}
+.pt .ptl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:9px;padding:2px 4px;text-align:center}
+.pt .ptd{position:absolute;top:2px;right:2px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.add-ph{border:2px dashed var(--border);border-radius:7px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:10px;background:var(--card)}
+.add-ph:hover{border-color:var(--pl);color:var(--pl)}
+
+/* ── Stat strip ── */
+.stat-strip{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sbox{background:var(--surface);border-radius:10px;padding:12px;border:1px solid var(--border);flex:1;min-width:80px;box-shadow:var(--sh)}
+.snum{font-size:24px;font-weight:900;line-height:1}
+.slbl{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── Form ── */
+.lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+input,select,textarea{width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--card);color:var(--text);font-family:inherit;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--pl)}
+textarea{resize:vertical;min-height:60px}
+input[readonly]{background:#e4eaf0;color:var(--muted)}
+
+/* ── Buttons ── */
+.btn{padding:7px 13px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:opacity .15s}
+.btn:active{opacity:.72}
+.bp{background:var(--primary);color:#fff}
+.ba{background:var(--accent);color:#fff}
+.bg{background:#E4EAF0;color:var(--texts)}
+.bsm{padding:5px 10px;font-size:11px}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:480px){.g3{grid-template-columns:1fr 1fr}}
+
+/* ── Modal ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:580px){.ov{align-items:center}}
+.mbox{background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,0.22)}
+@media(min-width:580px){.mbox{border-radius:14px}}
+.mh{background:linear-gradient(135deg,var(--primary),#0a2240);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;border-radius:18px 18px 0 0}
+@media(min-width:580px){.mh{border-radius:14px 14px 0 0}}
+.mc{padding:14px 16px}
+.mcl{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;padding:0;margin-left:8px;flex-shrink:0}
+.score-btns{display:flex;gap:5px;flex-wrap:wrap}
+.sbtn{padding:5px 10px;border-radius:7px;border:2px solid var(--border);background:var(--card);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
+.div{border-top:1px solid var(--border);margin:10px 0}
+.fe{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* ── Photo Viewer ── */
+.pv-ov{position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:300;display:flex;flex-direction:column}
+.pv-top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;color:#fff;gap:8px;position:relative;z-index:320;flex-shrink:0;background:rgba(0,0,0,0.85);border-bottom:1px solid rgba(255,255,255,0.15)}
+.pv-ttl{font-weight:700;font-size:13px}
+.pv-main{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0}
+#pvc{display:block;max-width:100%;max-height:55vh;cursor:crosshair;touch-action:none}
+.pv-tools{display:flex;gap:6px;padding:8px 10px;background:rgba(0,0,0,0.85);flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;z-index:320;flex-shrink:0;border-top:1px solid rgba(255,255,255,0.15);scrollbar-width:none}
+.ptool{padding:7px 11px;border-radius:7px;border:2px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.07);color:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;transition:all .15s;white-space:nowrap;flex-shrink:0;min-height:36px}
+.ptool.active{border-color:#1ABC9C;background:#1ABC9C}
+.cdot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);cursor:pointer;transition:transform .15s}
+.cdot.active{border-color:#fff;transform:scale(1.3)}
+
+/* ── Bottom mobile cat nav ── */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:90;
+  padding:4px 0 0;
+  padding-bottom:max(4px, env(safe-area-inset-bottom, 4px));
+  box-shadow:0 -2px 12px rgba(0,0,0,0.08);}
+@media(max-width:640px){
+  .sidebar{display:none}
+  .bot-nav{display:flex}
+  .layout{flex-direction:column}
+  .content{padding:10px}
+  html,body{height:100%;overflow-x:hidden}
+  body{-webkit-overflow-scrolling:touch}
+}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:none;background:none;cursor:pointer;font-family:inherit;position:relative;min-height:52px}
+.bn-btn .ico{font-size:22px;line-height:1}
+.bn-btn .lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:600;line-height:1.2}
+.bn-btn.active .ico{transform:scale(1.1)}
+.bn-btn.active .lbl{color:var(--primary);font-weight:800}
+.bn-btn .cnt{position:absolute;top:2px;right:calc(50% - 16px);background:var(--danger);color:#fff;font-size:8px;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 2px;font-weight:800}
+@media(max-width:640px){
+  .content{padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px))}
+}
+
+/* ── Header safe area already handled above ── */
+
+/* PWA */
+#inst{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--primary);color:#fff;padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom,10px));z-index:500;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+@media(max-width:640px){#inst{bottom:calc(52px + env(safe-area-inset-bottom,0px))}}
+
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb14{margin-bottom:14px}.mb16{margin-bottom:16px}.mt6{margin-top:6px}.mt8{margin-top:8px}
+.empty{text-align:center;color:var(--muted);padding:32px 16px;font-size:13px}
+/* Quick tags */
+.qtag{padding:4px 10px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--texts);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.qtag:active{background:var(--pll);border-color:var(--pl);color:var(--primary)}
+/* Version badge */
+.ver{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));right:8px;font-size:9px;color:var(--muted);background:var(--surface);padding:2px 6px;border-radius:10px;border:1px solid var(--border);z-index:50;opacity:0.7}
+@media(min-width:641px){.ver{bottom:8px}}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <div class="ht">🦴 骨科手足显微外科随访</div>
+    <div class="hs">分类管理 · 照片标注 · 时间轴随访</div>
+  </div>
+  <div class="hbr">
+    <button class="hbtn" onclick="exportCSV()">📊 CSV</button>
+    <button class="hbtn" onclick="exportReport()">📄 报告</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Desktop Sidebar -->
+  <div class="sidebar" id="sidebar"></div>
+
+  <!-- Content -->
+  <div class="content" id="content"></div>
+</div>
+
+<!-- Mobile bottom nav -->
+<div class="bot-nav" id="bot-nav"></div>
+
+<!-- Modal -->
+<div class="ov" id="modal-ov" style="display:none" onclick="ovClick(event)">
+  <div class="mbox" id="mbox"></div>
+</div>
+
+<!-- Photo Viewer -->
+<div class="pv-ov" id="pv" style="display:none">
+  <div class="pv-top">
+    <div class="pv-ttl" id="pv-ttl">照片标注</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="savePV()" style="background:#1ABC9C;border:none;color:#fff;padding:10px 16px;border-radius:9px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;min-height:44px">✅ 保存标注</button>
+      <button onclick="closePV()" style="background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.5);color:#fff;padding:10px 16px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;min-height:44px;min-width:64px">✕ 关闭</button>
+    </div>
+  </div>
+  <div class="pv-main"><canvas id="pvc"></canvas></div>
+  <div class="pv-tools" style="padding-bottom:max(8px,env(safe-area-inset-bottom,8px))">
+    <button class="ptool active" id="tl-circle" onclick="setTool('circle')">⭕ 画圈</button>
+    <button class="ptool" id="tl-arrow" onclick="setTool('arrow')">➡ 箭头</button>
+    <button class="ptool" id="tl-text" onclick="setTool('text')">✏ 文字</button>
+    <button class="ptool" onclick="undoLast()">↩ 撤销</button>
+    <button class="ptool" onclick="clearAnn()">🗑 清除</button>
+    <div class="cdot active" style="background:#FF3B30" data-c="#FF3B30" onclick="setColor(this)"></div>
+    <div class="cdot" style="background:#FFD60A" data-c="#FFD60A" onclick="setColor(this)"></div>
+    <div class="cdot" style="background:#30D158" data-c="#30D158" onclick="setColor(this)"></div>
+    <div class="cdot" style="background:#fff" data-c="#fff" onclick="setColor(this)"></div>
+  </div>
+</div>
+
+<div class="ver" id="ver-badge">v4.0</div>
+
+<div id="inst">
+  <div><div style="font-weight:700;font-size:13px">📲 安装到主屏幕</div><div style="font-size:10px;opacity:.75">像App一样使用，离线可用</div></div>
+  <div style="display:flex;gap:6px">
+    <button onclick="doPWA()" style="background:#fff;color:var(--primary);border:none;padding:5px 12px;border-radius:7px;font-weight:700;cursor:pointer;font-size:12px">安装</button>
+    <button onclick="document.getElementById('inst').style.display='none'" style="background:rgba(255,255,255,0.18);border:none;color:#fff;padding:5px 9px;border-radius:7px;cursor:pointer;font-size:12px">稍后</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════════════════════
+const CATS = [
+  {id:'amputation', ico:'🖐', name:'断指/断肢\n再植', color:'#C0392B', bg:'linear-gradient(135deg,#C0392B,#922B21)',
+   fields:[
+     {id:'vas',lbl:'血管危象评估',ph:'如：无血管危象，皮温正常'},
+     {id:'color',lbl:'指/肢端颜色',ph:'如：红润/苍白/紫绀'},
+     {id:'temp',lbl:'皮温(℃)',ph:'如：33.5'},
+     {id:'cap',lbl:'毛细血管充盈',ph:'如：<2s，正常'},
+     {id:'sens',lbl:'感觉恢复',ph:'如：两点辨别觉5mm'},
+     {id:'rom',lbl:'关节活动度(°)',ph:'如：屈曲80°，伸直-10°'},
+   ]},
+  {id:'flap', ico:'🩹', name:'皮瓣\n移植', color:'#7D3C98', bg:'linear-gradient(135deg,#7D3C98,#5B2C6F)',
+   fields:[
+     {id:'fc',lbl:'皮瓣颜色',ph:'如：红润/苍白'},
+     {id:'ft',lbl:'皮瓣张力',ph:'如：张力适中'},
+     {id:'ftemp',lbl:'皮温(℃)',ph:''},
+     {id:'donor',lbl:'供区愈合',ph:'如：对合良好，无渗液'},
+     {id:'sens2',lbl:'感觉情况',ph:''},
+     {id:'nec',lbl:'坏死评估',ph:'如：无坏死/边缘坏死约1cm'},
+   ]},
+  {id:'tendon', ico:'💪', name:'肌腱\n损伤', color:'#1A5276', bg:'linear-gradient(135deg,#1A5276,#0F3460)',
+   fields:[
+     {id:'glide',lbl:'肌腱滑动',ph:'如：主动屈伸流畅'},
+     {id:'grip',lbl:'握力(kg)',ph:''},
+     {id:'adh',lbl:'粘连情况',ph:'如：无明显粘连'},
+     {id:'rom2',lbl:'关节活动度',ph:'如：屈曲0-120°'},
+     {id:'rehab',lbl:'康复训练',ph:'如：每日功能锻炼'},
+     {id:'bunnell',lbl:'Bunnell试验',ph:'如：阴性'},
+   ]},
+  {id:'nerve', ico:'⚡', name:'神经\n损伤', color:'#117A65', bg:'linear-gradient(135deg,#117A65,#0E6655)',
+   fields:[
+     {id:'tinel',lbl:'Tinel征',ph:'如：(+)，向远端推进'},
+     {id:'sg',lbl:'神经恢复评级',ph:'如：S3+/M4'},
+     {id:'2pd',lbl:'两点辨别觉(mm)',ph:'如：8mm'},
+     {id:'sw',lbl:'Semmes-Weinstein',ph:'如：3.61'},
+     {id:'muscle',lbl:'肌肉萎缩情况',ph:'如：大鱼际轻度萎缩'},
+     {id:'emg',lbl:'肌电图结果',ph:'如：再生电位可见'},
+   ]},
+  {id:'fracture', ico:'🦴', name:'骨折\n内固定', color:'#784212', bg:'linear-gradient(135deg,#784212,#5D3D0F)',
+   fields:[
+     {id:'xray',lbl:'X线愈合情况',ph:'如：骨痂形成，对位对线良好'},
+     {id:'swell',lbl:'肿胀程度',ph:'如：轻度肿胀'},
+     {id:'rom3',lbl:'关节活动度',ph:'如：屈曲0-110°'},
+     {id:'weight',lbl:'负重情况',ph:'如：可部分负重'},
+     {id:'hw',lbl:'内固定状态',ph:'如：稳定，无松动'},
+     {id:'union',lbl:'愈合进度',ph:'如：骨折线模糊，愈合约70%'},
+   ]},
+  {id:'replant', ico:'🔬', name:'显微\n其他', color:'#1A6A72', bg:'linear-gradient(135deg,#1A6A72,#0E4F56)',
+   fields:[
+     {id:'o1',lbl:'专科评估1',ph:''},
+     {id:'o2',lbl:'专科评估2',ph:''},
+     {id:'o3',lbl:'专科评估3',ph:''},
+     {id:'o4',lbl:'专科评估4',ph:''},
+   ]},
+];
+
+const SCORES=[
+  {v:1,l:'1-感染/坏死',c:'#C0392B'},{v:2,l:'2-愈合差',c:'#E67E22'},
+  {v:3,l:'3-愈合中',c:'#F1C40F'},{v:4,l:'4-愈合良好',c:'#2ECC71'},{v:5,l:'5-完全愈合',c:'#1ABC9C'},
+];
+
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+let data = loadData();
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem('of_v3')||'null')||makeDemo(); }
+  catch(e){ return makeDemo(); }
+}
+function makeDemo(){
+  return {
+    amputation:[
+      {id:'P001',name:'王建国',gender:'男',age:35,surgeryDate:'2026-05-15',ward:'手足外科一病区',phone:'138****0001',
+       visits:[{id:'V001',date:'2026-05-22',time:'09:10',wl:2.5,ww:0.5,hs:4,dress:'碘伏湿敷+纱布',med:'低分子肝素5000U qd',sym:'无明显疼痛',func:'可轻微主动屈曲',notes:'再植成活良好',sf:{vas:'无血管危象',color:'红润',temp:'33.2',cap:'<2s',sens:'保护性感觉',rom:'屈曲30°'},photos:[]}]}
+    ],
+    flap:[
+      {id:'P002',name:'陈小燕',gender:'女',age:28,surgeryDate:'2026-05-18',ward:'手足外科二病区',phone:'139****0002',visits:[]}
+    ],
+    tendon:[],nerve:[],fracture:[],replant:[],
+  };
+}
+function saveData(){ localStorage.setItem('of_v3',JSON.stringify(data)); }
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(26,188,156,0.95);color:#fff;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.25);pointer-events:none;font-family:PingFang SC,sans-serif;text-align:center';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2000);
+}
+
+function deleteVisit(pid, catId, vid){
+  if(!confirm('确定要删除这条随访记录吗？')) return;
+  const p=(data[catId]||[]).find(x=>x.id===pid);
+  if(!p) return;
+  p.visits=p.visits.filter(v=>v.id!==vid);
+  saveData(); renderNav(); renderContent();
+  showToast('🗑 随访记录已删除');
+}
+
+
+function uid(){ return Math.random().toString(36).slice(2,7).toUpperCase(); }
+function nowDate(){ return new Date().toISOString().slice(0,10); }
+function nowTime(){ return new Date().toTimeString().slice(0,5); }
+function daysSince(d){ return Math.max(0,Math.floor((Date.now()-new Date(d).getTime())/86400000)); }
+function si(v){ return SCORES.find(s=>s.v===parseInt(v))||SCORES[2]; }
+function badge(score){ const s=si(score); return `<span class="badge" style="background:${s.c}22;color:${s.c};border:1px solid ${s.c}44">${s.l}</span>`; }
+function cat(id){ return CATS.find(c=>c.id===id); }
+function allPatients(){ return CATS.flatMap(c=>(data[c.id]||[]).map(p=>({...p,catId:c.id}))); }
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let curCat = CATS[0].id;
+let expandedPats = {};   // pid -> bool
+let expandedVisits = {}; // vid -> bool
+let searchQ = '';
+let curVScore = 4;
+let curPhotos = [];
+let curPid = null, curCatId = null;
+
+// ══════════════════════════════════════════════════════
+// RENDER NAV
+// ══════════════════════════════════════════════════════
+function renderNav(){
+  // Sidebar
+  let sh='';
+  CATS.forEach(c=>{
+    const cnt=(data[c.id]||[]).length;
+    sh+=`<button class="cat-btn${c.id===curCat?' active':''}" onclick="setCat('${c.id}')" title="${c.name.replace('\n',' ')}">
+      <span class="ico">${c.ico}</span>
+      <span class="lbl">${c.name}</span>
+      ${cnt?`<span class="cnt">${cnt}</span>`:''}
+    </button>`;
+  });
+  sh+=`<div class="side-div"></div>
+  <button class="cat-btn" onclick="openAddP()" title="新增患者">
+    <span class="ico">＋</span><span class="lbl">新增\n患者</span>
+  </button>`;
+  document.getElementById('sidebar').innerHTML=sh;
+
+  // Bottom mobile nav
+  let bh='';
+  CATS.forEach(c=>{
+    const cnt=(data[c.id]||[]).length;
+    bh+=`<button class="bn-btn${c.id===curCat?' active':''}" onclick="setCat('${c.id}')">
+      <span class="ico">${c.ico}</span>
+      <span class="lbl">${c.name.split('\n')[0]}</span>
+      ${cnt?`<span class="cnt">${cnt}</span>`:''}
+    </button>`;
+  });
+  bh+=`<button class="bn-btn" onclick="openAddP()">
+    <span class="ico">＋</span><span class="lbl">新增</span>
+  </button>`;
+  document.getElementById('bot-nav').innerHTML=bh;
+}
+
+function setCat(id){ curCat=id; searchQ=''; renderNav(); renderContent(); }
+
+// ══════════════════════════════════════════════════════
+// RENDER CONTENT
+// ══════════════════════════════════════════════════════
+function renderContent(){
+  const c=cat(curCat);
+  const patients=(data[curCat]||[]).filter(p=>!searchQ||p.name.includes(searchQ)||p.id.includes(searchQ));
+  const totalV=patients.reduce((a,p)=>a+p.visits.length,0);
+  const totalPh=patients.reduce((a,p)=>a+p.visits.reduce((b,v)=>b+(v.photos||[]).length,0),0);
+
+  let h=`
+  <!-- Banner -->
+  <div class="cat-banner" style="background:${c.bg}">
+    <span class="cb-ico">${c.ico}</span>
+    <div>
+      <div class="cb-title">${c.name.replace('\n','')}</div>
+      <div class="cb-sub">骨科手足显微外科 · 随访管理</div>
+    </div>
+    <div class="cb-count">
+      <div class="cb-num">${patients.length}</div>
+      <div class="cb-nl">位患者</div>
+    </div>
+  </div>
+
+  <!-- Stat strip -->
+  <div class="stat-strip">
+    <div class="sbox"><div class="snum" style="color:${c.color}">${patients.length}</div><div class="slbl">患者</div></div>
+    <div class="sbox"><div class="snum" style="color:var(--pl)">${totalV}</div><div class="slbl">随访次数</div></div>
+    <div class="sbox"><div class="snum" style="color:var(--accent)">${totalPh}</div><div class="slbl">照片</div></div>
+  </div>
+
+  <!-- Search + Add -->
+  <div class="search-row">
+    <input style="flex:1;min-width:150px;font-size:13px" placeholder="🔍 搜索姓名或ID..." value="${searchQ}" oninput="searchQ=this.value;renderContent()"/>
+    <button class="btn ba bsm" onclick="openAddP('${c.id}')">＋ 新增患者</button>
+  </div>`;
+
+  if(!patients.length){
+    h+=`<div class="empty">该分类暂无患者<br><span style="font-size:11px">点击右上角"＋ 新增患者"开始录入</span></div>`;
+  } else {
+    patients.forEach(p=>{ h+=renderPCard(p, c); });
+  }
+
+  document.getElementById('content').innerHTML=h;
+}
+
+function renderPCard(p, c){
+  const days=daysSince(p.surgeryDate);
+  const last=p.visits[p.visits.length-1];
+  const isExp=expandedPats[p.id];
+  const totalPh=p.visits.reduce((a,v)=>a+(v.photos||[]).length,0);
+
+  let visitsHtml='';
+  if(isExp){
+    if(!p.visits.length){
+      visitsHtml=`<div style="color:var(--muted);font-size:12px;padding:6px 0">暂无随访记录，点击"＋随访"开始记录</div>`;
+    } else {
+      visitsHtml=`<div class="visit-tl">`;
+      [...p.visits].reverse().forEach((v,ri)=>{
+        const vi=p.visits.length-1-ri;
+        const isLast=ri===p.visits.length-1;
+        const isVExp=expandedVisits[v.id];
+        const sc=si(v.healingScore);
+        visitsHtml+=`
+        <div class="vt-item">
+          <div class="vt-line-col">
+            <div class="vt-dot" style="background:${sc.c};border-color:${sc.c}"></div>
+            ${!isLast?`<div class="vt-bar"></div>`:''}
+          </div>
+          <div class="vt-content">
+            <div class="vt-head" onclick="toggleVisit('${v.id}')">
+              <div>
+                <span class="vt-date">📅 ${v.date} ${v.time}</span>
+                <span style="font-size:10px;color:var(--muted);margin-left:6px">📷${(v.photos||[]).length}张</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px">
+                ${badge(v.healingScore)}
+                <span style="color:var(--muted);font-size:14px">${isVExp?'▲':'▼'}</span>
+              </div>
+            </div>
+            ${isVExp?renderVisitDetail(v, p.id, c, vi):''}
+          </div>
+        </div>`;
+      });
+      visitsHtml+=`</div>`;
+    }
+  }
+
+  return `<div class="pcard" id="pc-${p.id}">
+    <div class="pcard-head${isExp?' expanded':''}" onclick="togglePat('${p.id}')">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="pname">${p.name}</span>
+          <span class="tag">${p.id}</span>
+          <span class="tag">${p.gender}/${p.age}岁</span>
+        </div>
+        <div class="pmeta">
+          <span style="font-size:11px;color:var(--muted)">术后 <b style="color:${c.color}">${days}</b> 天 · ${p.surgeryDate}</span>
+          <span style="font-size:11px;color:var(--muted)">随访${p.visits.length}次 · 📷${totalPh}张</span>
+          ${last?badge(last.healingScore):'<span style="font-size:10px;color:var(--muted)">待随访</span>'}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+        <button class="btn bsm" style="background:#EBF5FB;color:var(--pm);font-size:11px" onclick="event.stopPropagation();exportPatientReport('${p.id}','${c.id}','zh')">📄 中文</button>
+        <button class="btn bsm" style="background:#EBF5FB;color:var(--pm);font-size:11px" onclick="event.stopPropagation();exportPatientReport('${p.id}','${c.id}','en')">📄 EN</button>
+        <button class="btn ba bsm" onclick="event.stopPropagation();openNewVisit('${p.id}','${c.id}')">＋ 随访</button>
+        <span style="color:var(--muted);font-size:16px">${isExp?'▲':'▼'}</span>
+      </div>
+    </div>
+    ${isExp?`<div class="pcard-body">
+      <div class="g3 mb8" style="font-size:12px">
+        <div><label class="lbl">病区</label>${p.ward||'—'}</div>
+        <div><label class="lbl">联系电话</label>${p.phone||'—'}</div>
+        <div><label class="lbl">手术日期</label>${p.surgeryDate}</div>
+      </div>
+      ${visitsHtml}
+    </div>`:''}
+  </div>`;
+}
+
+function renderVisitDetail(v, pid, c, vi){
+  const sf=c.fields||[];
+  const sfHtml=sf.map(f=>`<div><label class="lbl">${f.lbl}</label><div style="font-size:12px">${v.sf&&v.sf[f.id]||'—'}</div></div>`).join('');
+  const photoHtml=(v.photos||[]).map(ph=>`
+    <div class="pt" onclick="pvOpen('${pid}','${c.id}',${vi},'${ph.id}')">
+      <img src="${ph.annotated||ph.src}" loading="lazy"
+        onerror="this.style.display='none';this.parentNode.style.background='#2a2a3e';this.parentNode.insertAdjacentHTML('beforeend','<div style=\'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#888;font-size:10px;text-align:center\'>图片<br>加载失败</div>')"/>
+      <div class="ptl">${ph.lbl}</div>
+    </div>`).join('');
+  return `<div class="vt-detail">
+    <div class="g2 mb8">
+      <div><label class="lbl">伤口尺寸</label><div style="font-size:12px">${v.wl}×${v.ww}cm（面积${(v.wl*v.ww).toFixed(2)}cm²）</div></div>
+      <div><label class="lbl">换药记录</label><div style="font-size:12px">${v.dress||'—'}</div></div>
+      <div><label class="lbl">用药记录</label><div style="font-size:12px">${v.med||'—'}</div></div>
+      <div><label class="lbl">功能恢复</label><div style="font-size:12px">${v.func||'—'}</div></div>
+    </div>
+    ${sfHtml?`<div style="background:#f0f7f4;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid #c8e6c9">
+      <div style="font-size:11px;font-weight:800;color:#0E6655;margin-bottom:6px">🔬 专科评估</div>
+      <div class="g2">${sfHtml}</div>
+    </div>`:''}
+    ${v.sym?`<div class="mb8"><label class="lbl">主诉症状</label><div style="font-size:12px">${v.sym}</div></div>`:''}
+    ${v.notes?`<div class="mb8"><label class="lbl">医生备注</label><div style="font-size:12px">${v.notes}</div></div>`:''}
+    ${photoHtml?`<div class="mb8"><label class="lbl">随访照片（点击标注）</label><div class="photo-grid">${photoHtml}</div></div>`:''}
+    ${(v.vas!=null||v.tam&&v.tam.length)?`
+    <div style="background:#FDFEFE;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid #D5D8DC">
+      <div style="font-size:11px;font-weight:800;color:var(--primary);margin-bottom:6px">📊 评分结果</div>
+      <div class="g2">
+        ${v.vas!=null?`<div><label class="lbl">VAS疼痛评分</label>
+          <div style="font-size:13px;font-weight:700;color:${v.vas<=3?'#27AE60':v.vas<=6?'#E67E22':'#C0392B'}">${v.vas}分</div></div>`:''}
+        ${v.tam&&v.tam.length?v.tam.map(r=>`<div><label class="lbl">${r.finger} TAM</label>
+          <div style="font-size:12px;font-weight:700;color:${r.tam>=220?'#27AE60':r.tam>=180?'#2ECC71':r.tam>=140?'#E67E22':'#C0392B'}">${r.tam}°（${r.grade}）</div></div>`).join(''):''}
+      </div>
+    </div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px">
+      <button class="btn bsm" style="background:#EBF5FB;color:var(--pm);border:1px solid #AED6F1"
+        onclick="event.stopPropagation();copyEMR('${pid}','${c.id}','${v.id}')">📋 复制病历格式</button>
+      <button class="btn bsm" style="background:#FEF0F0;color:var(--danger);border:1px solid #FADBD8"
+        onclick="event.stopPropagation();deleteVisit('${pid}','${c.id}','${v.id}')">🗑 删除此记录</button>
+    </div>
+  </div>`;
+}
+
+function togglePat(pid){
+  expandedPats[pid]=!expandedPats[pid];
+  renderContent();
+}
+function toggleVisit(vid){
+  expandedVisits[vid]=!expandedVisits[vid];
+  renderContent();
+}
+
+// ══════════════════════════════════════════════════════
+// ADD PATIENT MODAL
+// ══════════════════════════════════════════════════════
+function openAddP(catId){
+  catId=catId||curCat;
+  const catOpts=CATS.map(c=>`<option value="${c.id}"${c.id===catId?' selected':''}>${c.ico} ${c.name.replace('\n','')}</option>`).join('');
+  openModal(`
+  <div class="mh">
+    <div><div style="font-weight:800;font-size:15px">新增患者档案</div><div style="font-size:10px;opacity:.65">骨科手足显微外科</div></div>
+    <button class="mcl" onclick="closeModal()">×</button>
+  </div>
+  <div class="mc">
+    <div class="mb12"><label class="lbl">手术分类 *</label><select id="ap-cat">${catOpts}</select></div>
+    <div class="g2 mb12">
+      <div><label class="lbl">姓名 *</label><input id="ap-name" placeholder="患者姓名"/></div>
+      <div><label class="lbl">性别</label><select id="ap-g"><option>男</option><option>女</option></select></div>
+      <div><label class="lbl">年龄</label><input id="ap-age" type="number" placeholder="岁"/></div>
+      <div><label class="lbl">手术日期 *</label><input id="ap-sd" type="date" value="${nowDate()}"/></div>
+    </div>
+    <div class="g2 mb16">
+      <div><label class="lbl">病区</label><input id="ap-ward" placeholder="如：手足外科一病区"/></div>
+      <div><label class="lbl">联系电话</label><input id="ap-ph" placeholder="手机号"/></div>
+    </div>
+    <div class="fe">
+      <button class="btn bg" onclick="closeModal()">取消</button>
+      <button class="btn bp" onclick="saveP()">✅ 保存患者</button>
+    </div>
+  </div>`);
+}
+
+function saveP(){
+  const name=document.getElementById('ap-name').value.trim();
+  if(!name){ showToast('⚠️ 请填写患者姓名'); return; }
+  const catId=document.getElementById('ap-cat').value;
+  const p={id:'P'+uid(),name,gender:document.getElementById('ap-g').value,
+    age:document.getElementById('ap-age').value,
+    surgeryDate:document.getElementById('ap-sd').value,
+    ward:document.getElementById('ap-ward').value,
+    phone:document.getElementById('ap-ph').value,visits:[]};
+  if(!data[catId]) data[catId]=[];
+  data[catId].unshift(p);
+  saveData(); closeModal();
+  curCat=catId; renderNav(); renderContent();
+  showToast('✅ 患者档案已保存');
+}
+
+// ══════════════════════════════════════════════════════
+// NEW VISIT MODAL
+// ══════════════════════════════════════════════════════
+function openNewVisit(pid, catId){
+  curPid=pid; curCatId=catId; curVScore=4; curPhotos=[]; curVAS=null;
+  const p=(data[catId]||[]).find(x=>x.id===pid);
+  const c=cat(catId);
+  const sfHtml=c.fields.map(f=>`<div><label class="lbl">${f.lbl}</label><input id="sf-${f.id}" placeholder="${f.ph}"/></div>`).join('');
+
+  openModal(`
+  <div class="mh" style="background:${c.bg}">
+    <div><div style="font-weight:800;font-size:15px">${c.ico} 新增随访记录</div>
+    <div style="font-size:10px;opacity:.65">${p.name} · ${c.name.replace('\n','')}</div></div>
+    <button class="mcl" onclick="closeModal()">×</button>
+  </div>
+  <div class="mc">
+    <div class="g2 mb12">
+      <div><label class="lbl">📅 随访日期（自动）</label><input readonly value="${nowDate()}"/></div>
+      <div><label class="lbl">🕐 随访时间（自动）</label><input readonly value="${nowTime()}"/></div>
+    </div>
+
+    <div style="background:var(--pll);border-radius:10px;padding:10px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:800;color:var(--pm);margin-bottom:6px">📐 伤口尺寸</div>
+      <div class="g3">
+        <div><label class="lbl">长(cm)</label><input id="vl" type="number" step="0.1" oninput="calcA()"/></div>
+        <div><label class="lbl">宽(cm)</label><input id="vw" type="number" step="0.1" oninput="calcA()"/></div>
+        <div><label class="lbl">面积(cm²)</label><input id="va" readonly/></div>
+      </div>
+    </div>
+
+    <div class="mb12">
+      <label class="lbl">⭐ 愈合评分</label>
+      <div class="score-btns">
+        ${SCORES.map(s=>`<button class="sbtn${s.v===4?' active':''}" id="sb-${s.v}"
+          style="${s.v===4?`border-color:${s.c};background:${s.c}22;color:${s.c};font-weight:700`:''}"
+          onclick="selScore(${s.v},'${s.c}')">${s.l}</button>`).join('')}
+      </div>
+    </div>
+
+    <div style="background:#f0faf7;border-radius:10px;padding:10px;margin-bottom:12px;border:1px solid #a9dfbf">
+      <div style="font-size:11px;font-weight:800;color:#0E6655;margin-bottom:6px">🔬 专科评估 — ${c.name.replace('\n','')}</div>
+      <div class="g2">${sfHtml}</div>
+    </div>
+
+    <div class="mb12">
+      <label class="lbl">🩹 换药记录</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+        ${QUICK_TAGS.dressing.map(t=>`<button type="button" class="qtag" onclick="setTag('vdress','${t}')">${t}</button>`).join('')}
+      </div>
+      <input id="vdress" placeholder="点击标签或手动输入"/>
+    </div>
+    <div class="mb12">
+      <label class="lbl">💊 用药记录</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+        ${QUICK_TAGS.medication.map(t=>`<button type="button" class="qtag" onclick="setTag('vmed','${t}')">${t}</button>`).join('')}
+      </div>
+      <input id="vmed" placeholder="点击标签或手动输入"/>
+    </div>
+
+
+    <!-- ── VAS 疼痛评分 ── -->
+    <div class="mb12" style="background:#FEF9E7;border-radius:10px;padding:11px;border:1px solid #F9E79F">
+      <div style="font-size:12px;font-weight:800;color:#7D6608;margin-bottom:8px">📊 VAS 疼痛评分（0=无痛，10=最痛）</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px" id="vas-btns">
+        ${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button"
+          onclick="selVAS(${n})"
+          id="vas-${n}"
+          style="width:36px;height:36px;border-radius:8px;border:2px solid ${n<=3?'#27AE60':n<=6?'#E67E22':'#C0392B'};
+          background:${n===0?'#27AE6022':n<=3?'#27AE6011':n<=6?'#E67E2211':'#C0392B11'};
+          color:${n<=3?'#1A7240':n<=6?'#784212':'#7B241C'};font-weight:700;cursor:pointer;font-size:13px;font-family:inherit"
+          >${n}</button>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--muted)">已选：<span id="vas-val" style="font-weight:800;color:var(--primary)">未选择</span></div>
+    </div>
+
+    <!-- ── TAM 关节活动度 ── -->
+    <div class="mb12" style="background:#EBF5FB;border-radius:10px;padding:11px;border:1px solid #AED6F1">
+      <div style="font-size:12px;font-weight:800;color:#1A5276;margin-bottom:8px">📐 TAM 关节活动度（手指）</div>
+      <div id="tam-rows">
+        <div style="display:grid;grid-template-columns:80px 1fr 1fr 1fr 70px;gap:6px;align-items:center;margin-bottom:6px;font-size:11px;color:var(--muted);font-weight:700">
+          <div>手指</div><div>MCP屈(°)</div><div>PIP屈(°)</div><div>DIP屈(°)</div><div>TAM</div>
+        </div>
+        ${['拇指','示指','中指','环指','小指'].map((f,i)=>`
+        <div style="display:grid;grid-template-columns:80px 1fr 1fr 1fr 70px;gap:6px;align-items:center;margin-bottom:5px">
+          <div style="font-size:12px;font-weight:700">${f}</div>
+          <input type="number" min="0" max="120" placeholder="0-90" id="mcp-${i}"
+            style="padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);text-align:center"
+            oninput="calcTAM(${i})"/>
+          <input type="number" min="0" max="120" placeholder="0-110" id="pip-${i}"
+            style="padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);text-align:center"
+            oninput="calcTAM(${i})"/>
+          <input type="number" min="0" max="90" placeholder="0-70" id="dip-${i}"
+            style="padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);text-align:center"
+            oninput="calcTAM(${i})"/>
+          <div id="tam-res-${i}" style="font-size:12px;font-weight:800;color:var(--primary);text-align:center">—</div>
+        </div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">TAM = MCP+PIP+DIP之和 · 优≥220° 良180-219° 可140-179° 差&lt;140°</div>
+    </div>
+
+    <!-- ── 快捷主诉标签 ── -->
+    <div class="mb12">
+      <label class="lbl">🗣 患者主诉</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+        ${QUICK_TAGS.symptoms.map(t=>`<button type="button" class="qtag" onclick="appendTag('vsym','${t}')">${t}</button>`).join('')}
+      </div>
+      <textarea id="vsym" placeholder="点击上方标签快速填入，或手动输入"></textarea>
+    </div>
+
+    <!-- ── 快捷功能标签 ── -->
+    <div class="mb12">
+      <label class="lbl">🏃 功能恢复</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+        ${QUICK_TAGS.functional.map(t=>`<button type="button" class="qtag" onclick="appendTag('vfunc','${t}')">${t}</button>`).join('')}
+      </div>
+      <textarea id="vfunc" placeholder="点击标签或手动输入"></textarea>
+    </div>
+
+    <!-- ── 快捷备注标签 ── -->
+    <div class="mb14">
+      <label class="lbl">📝 医生备注</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+        ${QUICK_TAGS.notes.map(t=>`<button type="button" class="qtag" onclick="appendTag('vnotes','${t}')">${t}</button>`).join('')}
+      </div>
+      <textarea id="vnotes" placeholder="点击标签或手动输入"></textarea>
+    </div>
+
+    <!-- ── 照片 ── -->
+    <div class="mb14">
+      <label class="lbl">📷 随访照片（多张，自动添加时间戳水印）</label>
+      <div class="photo-grid" id="new-ph-grid">
+        <div class="add-ph" onclick="document.getElementById('fup').click()">
+          <div style="font-size:22px">📷</div><div style="margin-top:3px">上传照片</div>
+        </div>
+      </div>
+      <input type="file" id="fup" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)"/>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">
+        💡 App内保存1080p高清版，原图请保留在手机相册备用
+      </div>
+    </div>
+
+    <div class="fe">
+      <button class="btn bg" onclick="closeModal()">取消</button>
+      <button class="btn bp save-visit-btn" onclick="saveVisit()">✅ 保存随访记录</button>
+    </div>
+  </div>`);
+}
+
+function calcA(){
+  const l=parseFloat(document.getElementById('vl').value)||0;
+  const w=parseFloat(document.getElementById('vw').value)||0;
+  document.getElementById('va').value=l&&w?(l*w).toFixed(2):'';
+}
+
+function selScore(v,c){
+  curVScore=v;
+  SCORES.forEach(s=>{
+    const b=document.getElementById('sb-'+s.v);if(!b)return;
+    if(s.v===v){b.style.borderColor=c;b.style.background=c+'22';b.style.color=c;b.style.fontWeight='700';}
+    else{b.style.borderColor='var(--border)';b.style.background='var(--card)';b.style.color='var(--texts)';b.style.fontWeight='400';}
+  });
+}
+
+const PHOTO_LABELS=['背侧观','掌侧观','侧面观','整体观','细节图','供区'];
+
+// ── Quick input tags per field ──
+const QUICK_TAGS = {
+  symptoms: ['无明显疼痛','轻度疼痛可耐受','切口轻压痛','无红肿热痛','偶有酸痛','麻木感','夜间痛','无不适主诉'],
+  functional: ['日常活动正常','可完全负重','可部分负重','暂不能负重','手指主动屈伸正常','握力基本恢复','精细动作受限','生活自理'],
+  dressing: ['碘伏消毒+无菌纱布','碘伏湿敷','银离子敷料','藻酸盐敷料','水胶体敷料','干燥换药','无需换药'],
+  medication: ['无用药','低分子肝素5000U qd','阿司匹林100mg qd','头孢呋辛0.75g bid','迈之灵2片 bid','塞来昔布200mg qd','甲钴胺0.5mg tid'],
+  notes: ['切口对合良好','切口愈合良好','皮瓣成活良好','骨痂形成中','内固定稳定','无血管危象','继续抗凝治疗','下次随访复查X线'],
+  vas: ['0','1','2','3','4','5','6','7','8','9','10'],
+};
+
+// ── TAM finger presets ──
+const FINGERS = ['拇指','示指','中指','环指','小指'];
+
+function addWatermark(src,date,time,name,lbl){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onerror=()=>rej(new Error('Image load failed'));
+    img.onload=()=>{
+      try{
+        // ── 1080p: 长边最大1920px，短边最大1080px，保持原比例 ──
+        // 手机原图通常4000x3000，压缩后约1920x1440，清晰度足够学术使用
+        const LONG=1920, SHORT=1080;
+        let w=img.width, h=img.height;
+        const isLandscape = w >= h;
+        const longMax  = isLandscape ? LONG : SHORT;
+        const shortMax = isLandscape ? SHORT : LONG;
+        if(w > longMax || h > shortMax){
+          const scaleByLong  = longMax  / (isLandscape ? w : h);
+          const scaleByShort = shortMax / (isLandscape ? h : w);
+          const scale = Math.min(scaleByLong, scaleByShort);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const c=document.createElement('canvas');
+        c.width=w; c.height=h;
+        const ctx=c.getContext('2d');
+        // 高质量缩放
+        ctx.imageSmoothingEnabled=true;
+        ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,0,0,w,h);
+        // ── 水印条 ──
+        const bh=Math.max(30,h*0.05);
+        ctx.fillStyle='rgba(15,52,96,0.78)';
+        ctx.fillRect(0,h-bh,w,bh);
+        const fs=Math.max(13,Math.min(bh*0.52,20));
+        ctx.font=`bold ${fs}px PingFang SC,Arial`;
+        ctx.fillStyle='#fff';
+        ctx.fillText(`${name}  ${date} ${time}  ${lbl}`,10,h-bh*0.18);
+        // ── 质量0.88：1080p下约300-600KB，兼顾清晰度和存储 ──
+        res(c.toDataURL('image/jpeg',0.88));
+      }catch(e){ rej(e); }
+    };
+    img.src=src;
+  });
+}
+
+let photosProcessing=false;
+function handlePhotos(e){
+  const files=Array.from(e.target.files);
+  if(!files.length) return;
+  photosProcessing=true;
+  const g=document.getElementById('new-ph-grid');
+  if(g){
+    const ld=document.createElement('div');
+    ld.id='ph-loading';
+    ld.style.cssText='grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:10px';
+    ld.textContent=`📷 处理中 (0/${files.length})…`;
+    g.appendChild(ld);
+  }
+  const p=(data[curCatId]||[]).find(x=>x.id===curPid);
+  let done=0;
+  const promises=files.map((f,i)=>new Promise(res=>{
+    const r=new FileReader();
+    r.onerror=()=>res(null);
+    r.onload=async ev=>{
+      try{
+        const lbl=PHOTO_LABELS[(curPhotos.length+i)%PHOTO_LABELS.length];
+        const stamped=await addWatermark(ev.target.result,nowDate(),nowTime(),p.name,lbl);
+        done++;
+        const ld2=document.getElementById('ph-loading');
+        if(ld2) ld2.textContent=`📷 处理中 (${done}/${files.length})…`;
+        res({id:uid(),src:stamped,annotated:null,lbl,ts:nowDate()+' '+nowTime()});
+      }catch(err){
+        console.error('Photo process error:',err);
+        res(null);
+      }
+    };
+    r.readAsDataURL(f);
+  }));
+  Promise.all(promises).then(results=>{
+    const nph=results.filter(x=>x!==null);
+    curPhotos=[...curPhotos,...nph];
+    photosProcessing=false;
+    refreshNewGrid();
+    if(nph.length===files.length){
+      showToast(`📷 ${nph.length}张照片已就绪，可以保存`);
+    } else {
+      showToast(`⚠️ ${nph.length}/${files.length}张处理成功`);
+    }
+  }).catch(err=>{
+    photosProcessing=false;
+    refreshNewGrid();
+    showToast('❌ 照片处理失败，请重试');
+  });
+  e.target.value='';
+}
+
+function refreshNewGrid(){
+  const g=document.getElementById('new-ph-grid');if(!g)return;
+  let h=curPhotos.map((ph,i)=>`
+    <div class="pt">
+      <img src="${ph.annotated||ph.src}"/>
+      <div class="ptl">${ph.lbl}</div>
+      <button class="ptd" onclick="rmPh(${i})">×</button>
+    </div>`).join('');
+  h+=`<div class="add-ph" onclick="document.getElementById('fup').click()">
+    <div style="font-size:20px">📷</div><div style="margin-top:2px">继续上传</div>
+  </div>`;
+  g.innerHTML=h;
+}
+function rmPh(i){ curPhotos.splice(i,1); refreshNewGrid(); }
+
+// ── Quick tag helpers ──
+function appendTag(id, val){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.value = el.value ? el.value + '，' + val : val;
+  el.focus();
+}
+function setTag(id, val){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.value = val;
+  el.focus();
+}
+
+// ── VAS scoring ──
+let curVAS = null;
+function selVAS(n){
+  curVAS = n;
+  [0,1,2,3,4,5,6,7,8,9,10].forEach(i=>{
+    const b=document.getElementById('vas-'+i);
+    if(!b) return;
+    const col = i<=3?'#27AE60':i<=6?'#E67E22':'#C0392B';
+    if(i===n){
+      b.style.background=col;b.style.color='#fff';b.style.transform='scale(1.15)';
+    } else {
+      b.style.background=i<=3?'#27AE6011':i<=6?'#E67E2211':'#C0392B11';
+      b.style.color=i<=3?'#1A7240':i<=6?'#784212':'#7B241C';
+      b.style.transform='scale(1)';
+    }
+  });
+  const lbl=['无痛','极轻微','轻微','轻度','轻中度','中度','中重度','重度','很重','极重','最剧烈'][n];
+  const vv=document.getElementById('vas-val');
+  if(vv) vv.textContent=`${n}分 — ${lbl}`;
+}
+
+// ── TAM calculator ──
+function calcTAM(i){
+  const mcp=parseFloat(document.getElementById('mcp-'+i)?.value)||0;
+  const pip=parseFloat(document.getElementById('pip-'+i)?.value)||0;
+  const dip=parseFloat(document.getElementById('dip-'+i)?.value)||0;
+  const tam=mcp+pip+dip;
+  const el=document.getElementById('tam-res-'+i);
+  if(!el) return;
+  if(!mcp&&!pip&&!dip){ el.textContent='—'; return; }
+  const grade = tam>=220?'优':tam>=180?'良':tam>=140?'可':'差';
+  const color = tam>=220?'#27AE60':tam>=180?'#2ECC71':tam>=140?'#E67E22':'#C0392B';
+  el.textContent=`${tam}°`;
+  el.style.color=color;
+  el.title=grade;
+}
+
+function getTAMData(){
+  const rows=[];
+  ['拇指','示指','中指','环指','小指'].forEach((f,i)=>{
+    const mcp=parseFloat(document.getElementById('mcp-'+i)?.value)||0;
+    const pip=parseFloat(document.getElementById('pip-'+i)?.value)||0;
+    const dip=parseFloat(document.getElementById('dip-'+i)?.value)||0;
+    if(mcp||pip||dip){
+      const tam=mcp+pip+dip;
+      const grade=tam>=220?'优':tam>=180?'良':tam>=140?'可':'差';
+      rows.push({finger:f,mcp,pip,dip,tam,grade});
+    }
+  });
+  return rows;
+}
+
+// ── Copy as EMR text ──
+function copyEMR(pid, catId, vid){
+  const p=(data[catId]||[]).find(x=>x.id===pid);
+  const c=cat(catId);
+  const v=p?.visits.find(x=>x.id===vid);
+  if(!v){ showToast('找不到随访记录'); return; }
+  const sc=si(v.hs);
+  let txt=`【随访记录】${v.date} ${v.time}\n`;
+  txt+=`患者：${p.name}，${p.gender}，${p.age}岁\n`;
+  txt+=`手术：${c.name.replace('\n','')}，手术日期${p.surgeryDate}，术后第${daysSince(p.surgeryDate)}天\n`;
+  txt+=`\n【伤口情况】\n`;
+  txt+=`伤口大小：${v.wl}×${v.ww}cm，面积${(v.wl*v.ww).toFixed(2)}cm²\n`;
+  txt+=`愈合评分：${sc.l}\n`;
+  if(v.dress) txt+=`换药：${v.dress}\n`;
+  if(v.med) txt+=`用药：${v.med}\n`;
+  if(v.vas!=null) txt+=`VAS疼痛评分：${v.vas}分\n`;
+  if(v.tam&&v.tam.length){
+    txt+=`\n【TAM关节活动度】\n`;
+    v.tam.forEach(r=>{ txt+=`${r.finger}：MCP ${r.mcp}°+PIP ${r.pip}°+DIP ${r.dip}°=TAM ${r.tam}°（${r.grade}）\n`; });
+  }
+  if(v.sf&&c.fields&&c.fields.length){
+    const hasAny=c.fields.some(f=>v.sf[f.id]);
+    if(hasAny){
+      txt+=`\n【专科评估】\n`;
+      c.fields.forEach(f=>{ if(v.sf[f.id]) txt+=`${f.lbl}：${v.sf[f.id]}\n`; });
+    }
+  }
+  if(v.sym) txt+=`\n【主诉】${v.sym}\n`;
+  if(v.func) txt+=`\n【功能恢复】${v.func}\n`;
+  if(v.notes) txt+=`\n【医生备注】${v.notes}\n`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    showToast('✅ 已复制病历格式，可直接粘贴到EMR');
+  }).catch(()=>{
+    // Fallback for browsers that don't support clipboard API
+    const ta=document.createElement('textarea');
+    ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ 已复制病历格式，可直接粘贴到EMR');
+  });
+}
+
+function saveVisit(){
+  if(photosProcessing){ showToast('⏳ 照片仍在处理，请稍候'); return; }
+  try {
+    const p=(data[curCatId]||[]).find(x=>x.id===curPid);
+    const c=cat(curCatId);
+    const sf={};
+    c.fields.forEach(f=>{ const el=document.getElementById('sf-'+f.id); if(el) sf[f.id]=el.value; });
+    const tamData = getTAMData();
+    const v={
+      id:'V'+uid(),date:nowDate(),time:nowTime(),
+      wl:parseFloat(document.getElementById('vl').value)||0,
+      ww:parseFloat(document.getElementById('vw').value)||0,
+      hs:curVScore,
+      vas:curVAS,
+      tam:tamData,
+      med:document.getElementById('vmed')?document.getElementById('vmed').value:'',
+      dress:document.getElementById('vdress')?document.getElementById('vdress').value:'',
+      sym:document.getElementById('vsym')?document.getElementById('vsym').value:'',
+      func:document.getElementById('vfunc')?document.getElementById('vfunc').value:'',
+      notes:document.getElementById('vnotes')?document.getElementById('vnotes').value:'',
+      sf, photos:curPhotos,
+    };
+    p.visits.push(v);
+    expandedPats[curPid]=true;
+    expandedVisits[v.id]=false;
+    // Save data - if localStorage is full due to photos, save without photos
+    try {
+      saveData();
+    } catch(storageErr) {
+      // If storage full, save visit without photo data
+      v.photos = v.photos.map(ph=>({...ph, src:'', annotated:'', storageFull:true}));
+      saveData();
+      showToast('⚠️ 照片过大未能全部保存，文字已保存');
+    }
+    closeModal();
+    renderNav();
+    renderContent();
+    showToast('✅ 随访记录已保存');
+  } catch(err) {
+    showToast('❌ 保存失败，请重试');
+    console.error('saveVisit error:', err);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════
+function openModal(html){ document.getElementById('mbox').innerHTML=html; document.getElementById('modal-ov').style.display='flex'; }
+function closeModal(){ document.getElementById('modal-ov').style.display='none'; }
+function ovClick(e){ if(e.target===document.getElementById('modal-ov')) closeModal(); }
+
+// ══════════════════════════════════════════════════════
+// PHOTO VIEWER / ANNOTATOR
+// ══════════════════════════════════════════════════════
+let pvS={pid:null,catId:null,vi:null,phid:null,tool:'circle',color:'#FF3B30',ann:[],drawing:false,sx:0,sy:0,baseImg:null,cx:0,cy:0};
+
+function pvOpen(pid,catId,vi,phid){
+  const p=(data[catId]||[]).find(x=>x.id===pid);
+  const v=p.visits[vi];
+  const ph=(v.photos||[]).find(x=>x.id===phid);
+  if(!ph)return;
+  pvS={...pvS,pid,catId,vi:parseInt(vi),phid,ann:[],drawing:false};
+  document.getElementById('pv-ttl').textContent=`${p.name} · ${v.date} · ${ph.lbl}`;
+  const canvas=document.getElementById('pvc');
+  const ctx=canvas.getContext('2d');
+  const img=new Image();
+  img.onerror=()=>{
+    // Draw error message on canvas
+    canvas.width=300; canvas.height=200;
+    ctx.fillStyle='#1a1a2e';
+    ctx.fillRect(0,0,300,200);
+    ctx.fillStyle='#ff6b6b';
+    ctx.font='bold 16px PingFang SC,Arial';
+    ctx.textAlign='center';
+    ctx.fillText('照片加载失败',150,90);
+    ctx.fillStyle='#aaa';
+    ctx.font='12px PingFang SC,Arial';
+    ctx.fillText('图片可能过大或已损坏',150,120);
+    ctx.textAlign='left';
+    showToast('⚠️ 照片加载失败，图片可能过大');
+  };
+  img.onload=()=>{
+    const mw=Math.min(window.innerWidth-24,700);
+    const mh=Math.min(window.innerHeight*0.6,580);
+    const sc=Math.min(mw/img.width,mh/img.height,1);
+    canvas.width=img.width*sc; canvas.height=img.height*sc;
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    pvS.baseImg=canvas.toDataURL();
+  };
+  img.src=ph.annotated||ph.src;
+  document.getElementById('pv').style.display='flex';
+  canvas.onmousedown=e=>pvDown(e,canvas.getBoundingClientRect());
+  canvas.onmousemove=e=>pvMove(e,canvas.getBoundingClientRect());
+  canvas.onmouseup=e=>pvUp(e,canvas.getBoundingClientRect());
+  canvas.ontouchstart=e=>{e.preventDefault();pvDown(e.touches[0],canvas.getBoundingClientRect());};
+  canvas.ontouchmove=e=>{e.preventDefault();pvMove(e.touches[0],canvas.getBoundingClientRect());};
+  canvas.ontouchend=e=>{e.preventDefault();pvUp(e.changedTouches[0],canvas.getBoundingClientRect());};
+}
+
+function pvDown(e,r){
+  pvS.drawing=true; pvS.sx=e.clientX-r.left; pvS.sy=e.clientY-r.top;
+  if(pvS.tool==='text'){
+    const t=prompt('输入标注文字：');
+    if(t){ pvS.ann.push({type:'text',x:pvS.sx,y:pvS.sy,text:t,color:pvS.color}); pvRedraw(); }
+    pvS.drawing=false;
+  }
+}
+function pvMove(e,r){
+  if(!pvS.drawing||pvS.tool==='text')return;
+  pvS.cx=e.clientX-r.left; pvS.cy=e.clientY-r.top; pvRedraw(true);
+}
+function pvUp(e,r){
+  if(!pvS.drawing||pvS.tool==='text')return;
+  pvS.drawing=false;
+  pvS.ann.push({type:pvS.tool,x1:pvS.sx,y1:pvS.sy,x2:e.clientX-r.left,y2:e.clientY-r.top,color:pvS.color});
+  pvRedraw();
+}
+function pvRedraw(preview){
+  const canvas=document.getElementById('pvc'),ctx=canvas.getContext('2d');
+  const img=new Image();
+  img.onload=()=>{
+    ctx.drawImage(img,0,0);
+    pvS.ann.forEach(a=>drawAnn(ctx,a));
+    if(preview&&pvS.drawing) drawAnn(ctx,{type:pvS.tool,x1:pvS.sx,y1:pvS.sy,x2:pvS.cx,y2:pvS.cy,color:pvS.color});
+  };
+  img.src=pvS.baseImg;
+}
+function drawAnn(ctx,a){
+  ctx.strokeStyle=a.color;ctx.fillStyle=a.color;ctx.lineWidth=3;
+  if(a.type==='circle'){
+    const rx=Math.abs(a.x2-a.x1)/2,ry=Math.abs(a.y2-a.y1)/2;
+    ctx.beginPath();ctx.ellipse((a.x1+a.x2)/2,(a.y1+a.y2)/2,Math.max(rx,2),Math.max(ry,2),0,0,Math.PI*2);ctx.stroke();
+  } else if(a.type==='arrow'){
+    const dx=a.x2-a.x1,dy=a.y2-a.y1,len=Math.sqrt(dx*dx+dy*dy);if(len<4)return;
+    ctx.beginPath();ctx.moveTo(a.x1,a.y1);ctx.lineTo(a.x2,a.y2);ctx.stroke();
+    const ang=Math.atan2(dy,dx),hw=14;
+    ctx.beginPath();ctx.moveTo(a.x2,a.y2);
+    ctx.lineTo(a.x2-hw*Math.cos(ang-.4),a.y2-hw*Math.sin(ang-.4));
+    ctx.lineTo(a.x2-hw*Math.cos(ang+.4),a.y2-hw*Math.sin(ang+.4));
+    ctx.closePath();ctx.fill();
+  } else if(a.type==='text'){
+    ctx.font='bold 18px PingFang SC,Arial';
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillText(a.text,a.x+1,a.y+1);
+    ctx.fillStyle=a.color;ctx.fillText(a.text,a.x,a.y);
+  }
+}
+function setTool(t){
+  pvS.tool=t;
+  ['circle','arrow','text'].forEach(x=>{ const el=document.getElementById('tl-'+x); if(el) el.classList.toggle('active',x===t); });
+}
+function setColor(el){ pvS.color=el.dataset.c; document.querySelectorAll('.cdot').forEach(d=>d.classList.toggle('active',d===el)); }
+function clearAnn(){ pvS.ann=[]; pvRedraw(); }
+function undoLast(){ if(pvS.ann.length){ pvS.ann.pop(); pvRedraw(); } }
+function closePV(){
+  const pv=document.getElementById('pv');
+  pv.style.display='none';
+  // Reset canvas touch handlers to prevent ghost touches
+  const canvas=document.getElementById('pvc');
+  canvas.onmousedown=null; canvas.onmousemove=null; canvas.onmouseup=null;
+  canvas.ontouchstart=null; canvas.ontouchmove=null; canvas.ontouchend=null;
+  pvS.drawing=false;
+}
+function savePV(){
+  const canvas=document.getElementById('pvc');
+  const imgData=canvas.toDataURL('image/jpeg',0.9);
+  const p=(data[pvS.catId]||[]).find(x=>x.id===pvS.pid);
+  const v=p.visits[pvS.vi];
+  const ph=(v.photos||[]).find(x=>x.id===pvS.phid);
+  if(ph){ ph.annotated=imgData; saveData(); }
+  closePV(); renderContent();
+}
+
+// ══════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════
+function exportCSV(){
+  const rows=[['分类','患者ID','姓名','性别','年龄','手术日期','随访日期','随访时间','伤口长','伤口宽','面积(cm²)','愈合评分','换药','用药','主诉','功能','备注','照片数']];
+  CATS.forEach(c=>(data[c.id]||[]).forEach(p=>p.visits.forEach(v=>rows.push([
+    c.name.replace('\n',''),p.id,p.name,p.gender,p.age,p.surgeryDate,
+    v.date,v.time,v.wl,v.ww,(v.wl*v.ww).toFixed(2),
+    si(v.hs).l,v.dress,v.med,v.sym,v.func,v.notes,(v.photos||[]).length
+  ]))));
+  const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  dl(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),`骨科随访_${nowDate()}.csv`);
+}
+
+function exportReport(){
+  let h=`<html><head><meta charset="utf-8"><title>骨科随访报告</title>
+  <style>body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;padding:22px;color:#1A252F;font-size:13px}
+  h1{color:#0F3460;border-bottom:3px solid #1A5276;padding-bottom:6px}
+  h2{color:#0F3460;margin:18px 0 4px;font-size:15px;border-left:4px solid #0F3460;padding-left:8px}
+  h3{color:#1A5276;margin:10px 0 4px;font-size:13px}
+  table{width:100%;border-collapse:collapse;margin:5px 0;font-size:12px}
+  th{background:#0F3460;color:#fff;padding:5px 7px;text-align:left;font-size:11px}
+  td{padding:4px 7px;border-bottom:1px solid #CADCEC}tr:nth-child(even){background:#EEF2F7}
+  .b{padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700}
+  img.ph{max-width:110px;max-height:90px;border-radius:5px;margin:2px;border:1px solid #ccc}
+  .cat-sec{background:#f0f4f8;border-radius:8px;padding:10px;margin-bottom:14px}
+  </style></head><body>
+  <h1>🦴 骨科手足显微外科随访报告</h1>
+  <p style="color:#7F8C8D;font-size:12px">导出时间：${nowDate()} ${nowTime()} · 患者：${CATS.reduce((a,c)=>a+(data[c.id]||[]).length,0)}位 · 随访：${CATS.reduce((a,c)=>a+(data[c.id]||[]).reduce((b,p)=>b+p.visits.length,0),0)}次</p>`;
+
+  CATS.forEach(c=>{
+    const ps=data[c.id]||[];
+    if(!ps.length)return;
+    h+=`<div class="cat-sec"><h2>${c.ico} ${c.name.replace('\n','')}</h2>`;
+    ps.forEach(p=>{
+      h+=`<h3>${p.name}（${p.id}）— 术后${daysSince(p.surgeryDate)}天</h3>
+      <table><tr><th>手术日期</th><th>病区</th><th>随访次数</th></tr>
+      <tr><td>${p.surgeryDate}</td><td>${p.ward}</td><td>${p.visits.length}次</td></tr></table>`;
+      p.visits.forEach(v=>{
+        const s=si(v.hs);
+        h+=`<p style="margin:6px 0 2px"><b>${v.date} ${v.time}</b> &nbsp;<span class="b" style="background:${s.c}22;color:${s.c}">${s.l}</span></p>
+        <table><tr><th>尺寸</th><th>面积</th><th>换药</th><th>用药</th></tr>
+        <tr><td>${v.wl}×${v.ww}cm</td><td>${(v.wl*v.ww).toFixed(2)}cm²</td><td>${v.dress||'—'}</td><td>${v.med||'—'}</td></tr></table>`;
+        if(v.sf&&c.fields.length){
+          h+=`<table><tr>${c.fields.map(f=>`<th>${f.lbl}</th>`).join('')}</tr><tr>${c.fields.map(f=>`<td>${v.sf[f.id]||'—'}</td>`).join('')}</tr></table>`;
+        }
+        if(v.sym||v.func) h+=`<p style="font-size:12px"><b>主诉：</b>${v.sym||'—'} &nbsp;<b>功能：</b>${v.func||'—'}</p>`;
+        if((v.photos||[]).length){
+          h+=`<p style="font-size:11px;color:#666">📷 随访照片：</p>`;
+          v.photos.forEach(ph=>{ h+=`<img class="ph" src="${ph.annotated||ph.src}" title="${ph.lbl}"/>`; });
+        }
+      });
+    });
+    h+=`</div>`;
+  });
+  h+=`</body></html>`;
+  dl(new Blob([h],{type:'text/html;charset=utf-8;'}),`骨科随访报告_${nowDate()}.html`);
+}
+
+function dl(blob,name){ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click(); }
+
+// ══════════════════════════════════════════════════════
+// PATIENT REPORT EXPORT (中文 / English)
+// ══════════════════════════════════════════════════════
+const FIELD_LABELS = {
+  zh: {
+    vas:'血管危象评估',color:'指/肢端颜色',temp:'皮温(℃)',cap:'毛细血管充盈',sens:'感觉恢复',rom:'关节活动度',
+    fc:'皮瓣颜色',ft:'皮瓣张力',ftemp:'皮温(℃)',donor:'供区愈合',sens2:'感觉情况',nec:'坏死评估',
+    glide:'肌腱滑动',grip:'握力(kg)',adh:'粘连情况',rom2:'关节活动度',rehab:'康复训练',bunnell:'Bunnell试验',
+    tinel:'Tinel征',sg:'神经恢复评级',twopdl:'两点辨别觉',sw:'Semmes-Weinstein',muscle:'肌肉萎缩',emg:'肌电图',
+    xray:'X线愈合',swell:'肿胀程度',rom3:'关节活动度',weight:'负重情况',hw:'内固定状态',union:'骨折愈合进度',
+    o1:'专科评估1',o2:'专科评估2',o3:'专科评估3',o4:'专科评估4',
+  },
+  en: {
+    vas:'Vascular Crisis',color:'Digit/Limb Color',temp:'Skin Temp (℃)',cap:'Capillary Refill',sens:'Sensory Recovery',rom:'Range of Motion',
+    fc:'Flap Color',ft:'Flap Tension',ftemp:'Skin Temp (℃)',donor:'Donor Site Healing',sens2:'Sensation',nec:'Necrosis Assessment',
+    glide:'Tendon Gliding',grip:'Grip Strength (kg)',adh:'Adhesion',rom2:'Range of Motion',rehab:'Rehabilitation',bunnell:'Bunnell Test',
+    tinel:'Tinel Sign',sg:'Nerve Recovery Grade',twopdl:'2-Point Discrimination',sw:'Semmes-Weinstein',muscle:'Muscle Atrophy',emg:'EMG Result',
+    xray:'X-ray Healing',swell:'Swelling',rom3:'Range of Motion',weight:'Weight Bearing',hw:'Hardware Status',union:'Fracture Union Progress',
+    o1:'Assessment 1',o2:'Assessment 2',o3:'Assessment 3',o4:'Assessment 4',
+  }
+};
+
+const CAT_NAMES_EN = {
+  amputation:'Digit/Limb Replantation',
+  flap:'Flap Transfer',
+  tendon:'Tendon Repair',
+  nerve:'Nerve Repair',
+  fracture:'Fracture Fixation',
+  replant:'Microsurgery Other',
+};
+
+const SCORE_LABELS_EN = {
+  1:'Grade 1 - Infection/Necrosis',
+  2:'Grade 2 - Poor Healing',
+  3:'Grade 3 - Healing in Progress',
+  4:'Grade 4 - Good Healing',
+  5:'Grade 5 - Complete Healing',
+};
+
+function exportPatientReport(pid, catId, lang){
+  const p=(data[catId]||[]).find(x=>x.id===pid);
+  const c=cat(catId);
+  if(!p){ showToast('找不到患者数据'); return; }
+  const isZh = lang==='zh';
+  const L = FIELD_LABELS[lang];
+
+  const catName = isZh ? c.name.replace('\n','') : CAT_NAMES_EN[catId]||c.name.replace('\n','');
+  const title = isZh
+    ? `骨科手足显微外科随访报告`
+    : `Orthopaedic Hand & Microsurgery Follow-up Report`;
+  const subtitle = isZh
+    ? `${catName} · 患者随访档案`
+    : `${catName} · Patient Follow-up Record`;
+
+  // ── Build HTML report ──
+  let html = `<!DOCTYPE html><html lang="${isZh?'zh-CN':'en'}">
+<head><meta charset="UTF-8">
+<title>${isZh?p.name+' 随访报告':p.name+' Follow-up Report'}</title>
+<style>
+  @page{size:A4;margin:2cm 2.5cm}
+  *{box-sizing:border-box}
+  body{font-family:${isZh?'"Microsoft YaHei","PingFang SC",':''}Arial,sans-serif;font-size:11pt;color:#1a252f;line-height:1.6;margin:0;padding:24px 32px;max-width:800px;margin:0 auto}
+  h1{font-size:18pt;color:#0F3460;border-bottom:3px solid #0F3460;padding-bottom:8px;margin-bottom:4px}
+  h2{font-size:13pt;color:#0F3460;margin:0 0 2px}
+  h3{font-size:11pt;color:#1A5276;margin:16px 0 6px;border-left:4px solid #1A5276;padding-left:8px;background:#f0f4f8;padding:6px 8px;border-radius:0 6px 6px 0}
+  .subtitle{color:#7F8C8D;font-size:10pt;margin-bottom:20px}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid #CADCEC;border-radius:8px;overflow:hidden;margin-bottom:20px}
+  .meta-cell{padding:8px 12px;border-right:1px solid #CADCEC;border-bottom:1px solid #CADCEC}
+  .meta-cell:nth-child(3n){border-right:none}
+  .meta-cell:nth-last-child(-n+3){border-bottom:none}
+  .meta-lbl{font-size:9pt;color:#7F8C8D;display:block;margin-bottom:2px}
+  .meta-val{font-size:10.5pt;font-weight:700}
+  .visit-box{border:1px solid #CADCEC;border-radius:8px;margin-bottom:20px;overflow:hidden;page-break-inside:avoid}
+  .visit-head{background:#0F3460;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+  .visit-head-date{font-size:11pt;font-weight:700}
+  .visit-head-score{font-size:9pt;padding:3px 10px;border-radius:12px;font-weight:700}
+  .visit-body{padding:14px}
+  .data-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:12px}
+  .data-cell .lbl{font-size:9pt;color:#7F8C8D;display:block}
+  .data-cell .val{font-size:10pt;font-weight:500;border-bottom:1px solid #eee;padding-bottom:2px}
+  .spec-box{background:#f0faf7;border:1px solid #a9dfbf;border-radius:6px;padding:10px 12px;margin-bottom:12px}
+  .spec-title{font-size:9pt;font-weight:800;color:#0E6655;margin-bottom:6px}
+  .photo-section{margin-top:12px}
+  .photo-section-title{font-size:9pt;color:#7F8C8D;margin-bottom:6px;font-weight:700}
+  .photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .photo-item{text-align:center}
+  .photo-item img{width:100%;border-radius:6px;border:1px solid #CADCEC;display:block}
+  .photo-item .photo-lbl{font-size:8pt;color:#7F8C8D;margin-top:3px}
+  .footer{margin-top:32px;padding-top:12px;border-top:1px solid #CADCEC;font-size:8pt;color:#aaa;display:flex;justify-content:space-between}
+  .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:9pt;font-weight:700}
+  .divider{border:none;border-top:1px solid #CADCEC;margin:12px 0}
+  @media print{.visit-box{page-break-inside:avoid}}
+</style>
+</head><body>`;
+
+  // ── Cover / Header ──
+  html += `<h1>${title}</h1>
+  <div class="subtitle">${subtitle} &nbsp;·&nbsp; ${isZh?'导出时间':'Exported'}: ${nowDate()} ${nowTime()}</div>`;
+
+  // ── Patient Info ──
+  const days = daysSince(p.surgeryDate);
+  const infoItems = isZh ? [
+    ['姓名', p.name], ['编号', p.id], ['性别/年龄', `${p.gender} / ${p.age}岁`],
+    ['手术类型', catName], ['手术日期', p.surgeryDate], [`术后天数`, `${days} 天`],
+    ['病区', p.ward||'—'], ['联系电话', p.phone||'—'], ['随访次数', `${p.visits.length} 次`],
+  ] : [
+    ['Name', p.name], ['ID', p.id], ['Sex / Age', `${p.gender==='男'?'Male':'Female'} / ${p.age}y`],
+    ['Surgery Type', catName], ['Surgery Date', p.surgeryDate], ['Post-op Days', `${days} days`],
+    ['Ward', p.ward||'—'], ['Contact', p.phone||'—'], ['Follow-up Count', `${p.visits.length}`],
+  ];
+
+  html += `<div class="meta-grid">`;
+  infoItems.forEach(([k,v])=>{
+    html += `<div class="meta-cell"><span class="meta-lbl">${k}</span><span class="meta-val">${v}</span></div>`;
+  });
+  html += `</div>`;
+
+  // ── Visit Records ──
+  const visitTitle = isZh ? '随访记录' : 'Follow-up Records';
+  html += `<h3>${isZh?'📋':'📋'} ${visitTitle}</h3>`;
+
+  if(!p.visits.length){
+    html += `<p style="color:#aaa;font-style:italic">${isZh?'暂无随访记录':'No follow-up records yet'}</p>`;
+  }
+
+  p.visits.forEach((v,idx)=>{
+    const sc = si(v.hs);
+    const scoreLabel = isZh ? sc.l : SCORE_LABELS_EN[v.hs]||sc.l;
+    const scoreColor = sc.c;
+    const visitNum = isZh ? `第 ${idx+1} 次随访` : `Visit ${idx+1}`;
+
+    html += `<div class="visit-box">
+      <div class="visit-head">
+        <span class="visit-head-date">📅 ${visitNum} &nbsp; ${v.date} &nbsp; ${v.time}</span>
+        <span class="visit-head-score badge" style="background:${scoreColor}33;color:${scoreColor};border:1px solid ${scoreColor}66">${scoreLabel}</span>
+      </div>
+      <div class="visit-body">`;
+
+    // Basic data
+    const woundLabel = isZh ? '伤口尺寸' : 'Wound Size';
+    const dressingLabel = isZh ? '换药记录' : 'Dressing';
+    const medLabel = isZh ? '用药记录' : 'Medication';
+    const funcLabel = isZh ? '功能恢复' : 'Functional Recovery';
+    const areaLabel = isZh ? '伤口面积' : 'Wound Area';
+    const symLabel = isZh ? '患者主诉' : 'Chief Complaint';
+    const notesLabel = isZh ? '医生备注' : 'Clinical Notes';
+
+    html += `<div class="data-grid">
+      <div class="data-cell"><span class="lbl">${woundLabel}</span><span class="val">${v.wl} × ${v.ww} cm</span></div>
+      <div class="data-cell"><span class="lbl">${areaLabel}</span><span class="val">${(v.wl*v.ww).toFixed(2)} cm²</span></div>
+      <div class="data-cell"><span class="lbl">${dressingLabel}</span><span class="val">${v.dress||'—'}</span></div>
+      <div class="data-cell"><span class="lbl">${medLabel}</span><span class="val">${v.med||'—'}</span></div>
+    </div>`;
+
+    if(v.sym||v.func){
+      html += `<div class="data-grid">
+        ${v.sym?`<div class="data-cell"><span class="lbl">${symLabel}</span><span class="val">${v.sym}</span></div>`:''}
+        ${v.func?`<div class="data-cell"><span class="lbl">${funcLabel}</span><span class="val">${v.func}</span></div>`:''}
+      </div>`;
+    }
+
+    // Specialty fields
+    if(v.sf && c.fields && c.fields.length){
+      const hasAny = c.fields.some(f=>v.sf[f.id]);
+      if(hasAny){
+        const specTitle = isZh ? `专科评估 — ${catName}` : `Specialty Assessment — ${catName}`;
+        html += `<div class="spec-box"><div class="spec-title">🔬 ${specTitle}</div>
+        <div class="data-grid">`;
+        c.fields.forEach(f=>{
+          const val = v.sf[f.id];
+          if(!val) return;
+          const lbl = L[f.id] || f.lbl;
+          html += `<div class="data-cell"><span class="lbl">${lbl}</span><span class="val">${val}</span></div>`;
+        });
+        html += `</div></div>`;
+      }
+    }
+
+    // Notes
+    if(v.notes){
+      html += `<hr class="divider"><div class="data-cell"><span class="lbl">${notesLabel}</span><span class="val">${v.notes}</span></div>`;
+    }
+
+    // Photos
+    const photos = v.photos||[];
+    if(photos.length){
+      const photoTitle = isZh ? `随访照片（${photos.length}张）` : `Follow-up Photos (${photos.length})`;
+      html += `<div class="photo-section">
+        <div class="photo-section-title">📷 ${photoTitle}</div>
+        <div class="photo-grid">`;
+      photos.forEach(ph=>{
+        const src = ph.annotated||ph.src;
+        if(src){
+          html += `<div class="photo-item">
+            <img src="${src}" alt="${ph.lbl}"/>
+            <div class="photo-lbl">${ph.lbl} · ${ph.ts||v.date}</div>
+          </div>`;
+        }
+      });
+      html += `</div></div>`;
+    }
+
+    html += `</div></div>`;
+  });
+
+  // ── Footer ──
+  const footerL = isZh
+    ? `骨科手足显微外科随访系统 · 自动生成`
+    : `Orthopaedic Hand & Microsurgery Follow-up System · Auto-generated`;
+  const footerR = isZh
+    ? `本报告仅供医学参考，不作为法律依据`
+    : `For medical reference only. Not a legal document.`;
+  html += `<div class="footer"><span>${footerL}</span><span>${footerR}</span></div>`;
+  html += `</body></html>`;
+
+  const fname = isZh
+    ? `随访报告_${p.name}_${nowDate()}.html`
+    : `FollowUp_Report_${p.name}_${nowDate()}.html`;
+  dl(new Blob([html],{type:'text/html;charset=utf-8;'}), fname);
+  showToast(isZh ? `✅ ${p.name} 中文报告已导出` : `✅ ${p.name} English report exported`);
+}
+
+// ══════════════════════════════════════════════════════
+// PWA
+// ══════════════════════════════════════════════════════
+let dPWA=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault();dPWA=e;document.getElementById('inst').style.display='flex'; });
+function doPWA(){ if(dPWA){ dPWA.prompt();dPWA.userChoice.then(()=>document.getElementById('inst').style.display='none'); } }
+if('serviceWorker' in navigator){
+  const sw=`const C='of-v3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['/']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+renderNav();
+renderContent();
+</script>
+</body>
+</html>
